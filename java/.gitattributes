@@ -1,3 +1,5 @@
 * text=auto eol=lf
 *.cmd text eol=crlf
 *.csv text eol=lf
+# 境界ケースのテストデータ（CRLF行や不正バイトを含む）は改行変換しない
+python/tests/data/** -text
