@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.salesbatch.sales.SalesMapper">
+
+    <insert id="insert">
+        INSERT INTO sales (sales_date, store_code, product_code, quantity, unit_price, amount, line_no)
+        VALUES (#{salesDate}, #{storeCode}, #{productCode}, #{quantity}, #{unitPrice}, #{amount}, #{lineNo})
+    </insert>
+
+    <delete id="deleteAll">
+        DELETE FROM sales
+    </delete>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM sales
+    </select>
+
+</mapper>
