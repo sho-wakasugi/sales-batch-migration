@@ -24,8 +24,8 @@ log = logging.getLogger(__name__)
 def prepare(properties: SalesProperties, conn: sqlite3.Connection | None, job_parameters: Mapping[str, str]) -> None:
     input_file = properties.input_file
     if not input_file.is_file() or not os.access(input_file, os.R_OK):
-        raise InputFileException(f"入力ファイルが見つからないか読み込めません: {input_file.absolute()}")
-    log.info("入力ファイル: %s", input_file.absolute())
+        raise InputFileException(f"入力ファイルが見つからないか読み込めません: {input_file.resolve()}")
+    log.info("入力ファイル: %s", input_file.resolve())
 
     _create_parent_directory(properties.error_file)
     _create_parent_directory(properties.summary_file)
