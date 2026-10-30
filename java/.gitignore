@@ -5,11 +5,3 @@ target/
 .idea/
 *.iml
 .vscode/
-
-# Python
-/python/.venv/
-/python/data/
-/python/output/
-/python/logs/
-__pycache__/
-.pytest_cache/
