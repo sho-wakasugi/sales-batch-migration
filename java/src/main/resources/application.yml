@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: sales-batch
+  main:
+    banner-mode: off
+  datasource:
+    url: jdbc:h2:file:./data/salesdb;AUTO_SERVER=TRUE
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+  batch:
+    jdbc:
+      initialize-schema: always
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+sales:
+  input-file: input/sales.csv
+  error-file: output/error.csv
+  summary-file: output/summary.csv
