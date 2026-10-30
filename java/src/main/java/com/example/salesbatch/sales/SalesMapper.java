@@ -13,6 +13,7 @@ public interface SalesMapper {
 
     String NAMESPACE = "com.example.salesbatch.sales.SalesMapper";
     String INSERT = NAMESPACE + ".insert";
+    String SELECT_MONTHLY_SUMMARY = NAMESPACE + ".selectMonthlySummary";
 
     int insert(Sales sales);
 

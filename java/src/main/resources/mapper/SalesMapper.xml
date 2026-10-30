@@ -15,4 +15,25 @@
         SELECT COUNT(*) FROM sales
     </select>
 
+    <resultMap id="salesSummaryMap" type="com.example.salesbatch.sales.SalesSummary">
+        <constructor>
+            <arg column="store_code" javaType="string"/>
+            <arg column="sales_month" javaType="string"/>
+            <arg column="total_amount" javaType="_long"/>
+            <arg column="sales_count" javaType="_long"/>
+        </constructor>
+    </resultMap>
+
+    <!-- 店舗別・月別の売上金額と件数（店舗コード、年月の昇順） -->
+    <select id="selectMonthlySummary" resultMap="salesSummaryMap">
+        SELECT
+            store_code,
+            FORMATDATETIME(sales_date, 'yyyy-MM') AS sales_month,
+            SUM(amount)                           AS total_amount,
+            COUNT(*)                              AS sales_count
+        FROM sales
+        GROUP BY store_code, FORMATDATETIME(sales_date, 'yyyy-MM')
+        ORDER BY store_code, sales_month
+    </select>
+
 </mapper>

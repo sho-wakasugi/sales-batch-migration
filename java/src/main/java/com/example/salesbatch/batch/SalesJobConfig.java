@@ -9,10 +9,13 @@ import com.example.salesbatch.sales.SalesCsvRow;
 import com.example.salesbatch.sales.SalesError;
 import com.example.salesbatch.sales.SalesImportWriter;
 import com.example.salesbatch.sales.SalesMapper;
+import com.example.salesbatch.sales.SalesSummary;
 import com.example.salesbatch.sales.SalesValidationProcessor;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisBatchItemWriter;
+import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.mybatis.spring.batch.builder.MyBatisBatchItemWriterBuilder;
+import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
@@ -37,7 +40,8 @@ import java.util.List;
  * <pre>
  * salesJob
  *  ├─ prepareStep : 入力ファイル確認、（clear=true なら）売上テーブル全件削除
- *  └─ importStep  : CSV読込 → 入力チェック → 正常行はDB登録 / エラー行は error.csv
+ *  ├─ importStep  : CSV読込 → 入力チェック → 正常行はDB登録 / エラー行は error.csv
+ *  └─ summaryStep : 売上テーブルを店舗別・月別に集計 → summary.csv
  * </pre>
  */
 @Configuration
@@ -45,19 +49,23 @@ public class SalesJobConfig {
 
     public static final String JOB_NAME = "salesJob";
     public static final String IMPORT_STEP = "importStep";
+    public static final String SUMMARY_STEP = "summaryStep";
 
     private static final int CHUNK_SIZE = 50;
 
     @Bean
-    public Job salesJob(JobRepository jobRepository, Step prepareStep, Step importStep) {
+    public Job salesJob(JobRepository jobRepository, Step prepareStep, Step importStep, Step summaryStep,
+                        JobResultListener jobResultListener) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 // 実行ごとに run.id を1つ増やし、何度でも実行できるようにする。
                 // 前回のパラメータ（clear など）は引き継がず、毎回コマンドラインの指定だけを使う。
                 .incrementer(previous -> new JobParametersBuilder()
                         .addLong("run.id", (previous == null ? 0L : previous.getLong("run.id", 0L)) + 1)
                         .toJobParameters())
+                .listener(jobResultListener)
                 .start(prepareStep)
                 .next(importStep)
+                .next(summaryStep)
                 .build();
     }
 
@@ -121,5 +129,42 @@ public class SalesJobConfig {
                 .build();
 
         return new SalesImportWriter(salesWriter, errorWriter);
+    }
+
+    // ---------------------------------------------------------------
+    // summaryStep
+    // ---------------------------------------------------------------
+
+    @Bean
+    public Step summaryStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                            MyBatisCursorItemReader<SalesSummary> salesSummaryReader,
+                            FlatFileItemWriter<SalesSummary> salesSummaryWriter) {
+        return new StepBuilder(SUMMARY_STEP, jobRepository)
+                .<SalesSummary, SalesSummary>chunk(CHUNK_SIZE, transactionManager)
+                .reader(salesSummaryReader)
+                .writer(salesSummaryWriter)
+                .build();
+    }
+
+    @Bean
+    @StepScope
+    public MyBatisCursorItemReader<SalesSummary> salesSummaryReader(SqlSessionFactory sqlSessionFactory) {
+        return new MyBatisCursorItemReaderBuilder<SalesSummary>()
+                .sqlSessionFactory(sqlSessionFactory)
+                .queryId(SalesMapper.SELECT_MONTHLY_SUMMARY)
+                .build();
+    }
+
+    @Bean
+    @StepScope
+    public FlatFileItemWriter<SalesSummary> salesSummaryWriter(SalesProperties properties) {
+        return new FlatFileItemWriterBuilder<SalesSummary>()
+                .name("salesSummaryWriter")
+                .resource(new FileSystemResource(properties.summaryFile()))
+                .encoding(StandardCharsets.UTF_8.name())
+                .lineSeparator(CsvUtils.LINE_SEPARATOR)
+                .headerCallback(writer -> writer.write(CsvUtils.toLine(List.of("店舗コード", "年月", "売上金額", "件数"))))
+                .lineAggregator(summary -> CsvUtils.toLine(summary.toCsvValues()))
+                .build();
     }
 }
