@@ -1,0 +1,9 @@
+[project]
+name = "salesbatch"
+version = "1.0.0"
+description = "売上CSV集計バッチ（Java版からの移行）"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
