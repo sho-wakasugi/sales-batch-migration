@@ -1,7 +1,7 @@
 """ジョブ全体を実行し、出力ファイルと件数を検証する（Java: SalesJobIntegrationTest と同じ観点）。
 
-期待値ファイルは Java 側のもの（src/test/resources/integration）と、
-境界ケースを Java で実際に実行した出力（tests/data/expected）をそのまま使う。
+期待値ファイルは、Java版のテスト用ファイル（sales-batch の src/test/resources/integration）の
+コピー（tests/data/java_integration）と、境界ケースを Java で実際に実行した出力（tests/data/expected）を使う。
 """
 
 from pathlib import Path
@@ -12,9 +12,8 @@ from salesbatch.__main__ import EXIT_FAILED, main
 from salesbatch.batch.job import IMPORT_STEP, SUMMARY_STEP, BatchStatus, run_job
 from salesbatch.config import SalesProperties
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-JAVA_RESOURCES = PROJECT_ROOT / "src" / "test" / "resources" / "integration"
 DATA = Path(__file__).resolve().parent / "data"
+JAVA_RESOURCES = DATA / "java_integration"
 
 
 def make_properties(tmp_path: Path, input_file: Path) -> SalesProperties:

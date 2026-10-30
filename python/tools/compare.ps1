@@ -8,33 +8,44 @@
     - 売上テーブルの内容（id・登録日時を除く。line_no 順に CSV に書き出して比較）
     - ログの件数（読込・登録・エラー・集計出力）と終了ステータス
     - 終了コード
-  結果は python\output\compare\<入力ファイル名>\{java,python} に残る。
+  結果は output\compare\<入力ファイル名>\{java,python} に残る。
 
-  事前に Java をビルド（.\mvnw.cmd package）し、python\.venv を作っておくこと。
+  事前に Java版をビルド（sales-batch で .\mvnw.cmd package）し、このプロジェクトの .venv を作っておくこと。
+
+.PARAMETER JavaProject
+  Java版プロジェクト（sales-batch）のフォルダ。省略時はこのプロジェクトと同じ階層の sales-batch。
+
+.PARAMETER InputFiles
+  比較に使う入力ファイル（このプロジェクトのフォルダからの相対パス、または絶対パス）。
 
 .EXAMPLE
-  .\python\tools\compare.ps1
-  .\python\tools\compare.ps1 -InputFiles input\sales.csv
+  .\tools\compare.ps1
+  .\tools\compare.ps1 -InputFiles input\sales.csv
+  .\tools\compare.ps1 -JavaProject C:\work\sales-batch
 #>
 param(
+    [string]$JavaProject,
     [string[]]$InputFiles = @(
         "input\sales.csv",
-        "python\tests\data\edge_cases.csv",
-        "python\tests\data\edge_comment.csv",
-        "python\tests\data\failure_sum_overflow.csv",
-        "python\tests\data\failure_single_quote.csv"
+        "tests\data\edge_cases.csv",
+        "tests\data\edge_comment.csv",
+        "tests\data\failure_sum_overflow.csv",
+        "tests\data\failure_single_quote.csv"
     )
 )
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
-$jar = Join-Path $root "target\sales-batch.jar"
-$python = Join-Path $root "python\.venv\Scripts\python.exe"
-$exportTool = Join-Path $root "python\tools\export_sales.py"
+$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+if (-not $JavaProject) { $JavaProject = Join-Path (Split-Path $root -Parent) "sales-batch" }
+if (-not (Test-Path $JavaProject)) { Write-Host "Java版のプロジェクトが見つかりません。-JavaProject で指定してください: $JavaProject"; exit 2 }
+$JavaProject = (Resolve-Path $JavaProject).Path
+$jar = Join-Path $JavaProject "target\sales-batch.jar"
+$python = Join-Path $root ".venv\Scripts\python.exe"
+$exportTool = Join-Path $root "tools\export_sales.py"
 $h2Jar = Get-ChildItem "$env:USERPROFILE\.m2\repository\com\h2database\h2" -Recurse -Filter "h2-*.jar" -ErrorAction SilentlyContinue |
     Sort-Object FullName -Descending | Select-Object -First 1
 
-if (-not (Test-Path $jar)) { Write-Host "Java版の jar がありません。先に .\mvnw.cmd package を実行してください: $jar"; exit 2 }
-if (-not (Test-Path $python)) { Write-Host "Python の仮想環境がありません。python\README.md の手順で作成してください: $python"; exit 2 }
+if (-not (Test-Path $jar)) { Write-Host "Java版の jar がありません。先に $JavaProject で .\mvnw.cmd package を実行してください: $jar"; exit 2 }
+if (-not (Test-Path $python)) { Write-Host "Python の仮想環境がありません。README.md の手順で作成してください: $python"; exit 2 }
 if (-not $h2Jar) { Write-Host "H2 の jar が見つかりません（Java版を一度ビルドしてください）"; exit 2 }
 
 # ログから比較対象の行（件数・終了ステータス）を取り出す
@@ -58,7 +69,7 @@ $results = @()
 foreach ($inputFile in $InputFiles) {
     $inputPath = (Resolve-Path (Join-Path $root $inputFile)).Path
     $name = [IO.Path]::GetFileNameWithoutExtension($inputPath)
-    $dir = Join-Path $root "python\output\compare\$name"
+    $dir = Join-Path $root "output\compare\$name"
     $javaDir = Join-Path $dir "java"
     $pyDir = Join-Path $dir "python"
     if (Test-Path $dir) { Remove-Item -Recurse -Force $dir }
@@ -77,7 +88,7 @@ foreach ($inputFile in $InputFiles) {
     [IO.File]::WriteAllText($javaExport, $text, (New-Object Text.UTF8Encoding $false))
 
     # Python版
-    Push-Location (Join-Path $root "python")
+    Push-Location $root
     try {
         & $python -m salesbatch "--input-file=$inputPath" "--error-file=$pyDir\error.csv" `
             "--summary-file=$pyDir\summary.csv" "--db-file=$pyDir\salesdb.sqlite3" "--log-file=$pyDir\batch.log" clear=true | Out-Null
@@ -115,7 +126,7 @@ foreach ($inputFile in $InputFiles) {
 
 $results | Format-Table -AutoSize
 if ($results.結果 -contains "不一致") {
-    Write-Host "不一致があります。python\output\compare\ の出力を確認してください。"
+    Write-Host "不一致があります。output\compare\ の出力を確認してください。"
     exit 1
 }
 Write-Host "すべての入力で Java版と Python版の結果が一致しました。"

@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.csv text eol=lf
+# 境界ケースのテストデータ（CRLF行や不正バイトを含む）と Java の出力は改行変換しない
+tests/data/** -text
