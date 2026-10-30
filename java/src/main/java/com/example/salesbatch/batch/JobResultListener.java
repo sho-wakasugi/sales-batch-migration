@@ -11,12 +11,21 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.stereotype.Component;
 
 /**
- * ジョブ終了時に処理件数（読込・登録・エラー・集計出力）をログに出す。
+ * ジョブ開始時に開始メッセージを、終了時に処理件数（読込・登録・エラー・集計出力）をログに出す。
  */
 @Component
 public class JobResultListener implements JobExecutionListener {
 
     private static final Logger log = LoggerFactory.getLogger(JobResultListener.class);
+
+    @Override
+    public void beforeJob(JobExecution jobExecution) {
+        Object clear = jobExecution.getJobParameters().getParameters().containsKey(PrepareTasklet.CLEAR_PARAMETER)
+                ? jobExecution.getJobParameters().getString(PrepareTasklet.CLEAR_PARAMETER)
+                : "指定なし";
+        log.info("========== バッチ実行します ==========");
+        log.info("ジョブ名: {}、clear: {}", jobExecution.getJobInstance().getJobName(), clear);
+    }
 
     @Override
     public void afterJob(JobExecution jobExecution) {
