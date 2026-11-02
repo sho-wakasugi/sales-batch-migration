@@ -49,6 +49,54 @@ salesJob
 - **再実行**
   - 売上テーブルは通常は追加登録（蓄積）します。比較検証のときだけ `clear=true` で全件削除してから登録します。
 
+## 実行方法
+
+### 前提
+
+- JDK 21（`java -version` で 21 と表示されること）
+- Maven のインストールは不要です。初回のビルドで、Maven Wrapper が Maven 本体と依存ライブラリをダウンロードします
+
+### ビルドと実行（PowerShell）
+
+リポジトリのフォルダで実行します。
+
+```powershell
+# ビルド（テストも実行されます）。target\sales-batch.jar が作られます
+.\mvnw.cmd clean package
+
+# 実行（売上テーブルにデータを追加登録する）
+java -jar target\sales-batch.jar
+
+# 比較検証用の実行（売上テーブルを全件削除してから登録する）
+java -jar target\sales-batch.jar clear=true
+```
+
+| 入出力 | パス |
+|---|---|
+| 入力 | `input/sales.csv` |
+| エラー行 | `output/error.csv` |
+| 集計結果 | `output/summary.csv` |
+| DB（H2） | `data/salesdb.mv.db` |
+| ログ | `logs/sales-batch.log`（コンソールにも出力） |
+
+- 入力ファイルの場所は、`--sales.input-file=別のファイル.csv` を付けて変更できます。
+- 終了コードは、正常終了なら 0、異常終了（入力ファイルが無いなど）なら 5 です。
+
+### 結果の確認
+
+```powershell
+Get-Content -Encoding UTF8 output\summary.csv
+Get-Content -Encoding UTF8 output\error.csv
+```
+
+出力ファイルは UTF-8（BOM 無し）、改行は LF です。Windows PowerShell 5.1 では `-Encoding UTF8` を付けないと文字化けします。
+
+### テストだけ実行
+
+```powershell
+.\mvnw.cmd test
+```
+
 ## テスト
 
 JUnit 5 で **44件**のテストがあり、すべて成功しています。
