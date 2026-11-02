@@ -1,7 +1,26 @@
+# ビルド成果物
 target/
+
+# 実行時に作られるもの（DB・出力・ログ）
 /data/
 /output/
 /logs/
+*.mv.db
+*.trace.db
+*.sqlite3
+*.log
+
+# 秘密情報を含む可能性がある設定（ローカル専用）
+.env
+application-local.yml
+application-local.properties
+
+# IDE
 .idea/
 *.iml
 .vscode/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
