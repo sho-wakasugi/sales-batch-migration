@@ -1,7 +1,7 @@
 """設定値（Java: SalesProperties ＋ application.yml）。
 
-パスは実行時のカレントフォルダからの相対パス（プロジェクトのフォルダで実行する前提）。
-input/sales.csv は Java版（sales-batch）の input/sales.csv と同じ内容のコピー。
+パスは実行時のカレントフォルダからの相対パス（python フォルダで実行する前提）。
+input/sales.csv は Java版（java/input/sales.csv）と同じ内容のコピー。
 """
 
 from dataclasses import dataclass

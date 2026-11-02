@@ -1,1 +1,1 @@
-"""売上CSV集計バッチ（Java版 sales-batch からの移行）。"""
+"""売上CSV集計バッチ（Java版（java/）からの移行）。"""

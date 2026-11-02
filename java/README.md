@@ -110,9 +110,9 @@ JUnit 5 で **44件**のテストがあり、すべて成功しています。
 
 テストデータの `input/sales.csv`（100行）には、わざとエラーにした行を10行入れています。
 
-## Python版リポジトリとの関係
+## Python版との関係
 
-**Python 版：[sho-wakasugi/sales-batch-python](https://github.com/sho-wakasugi/sales-batch-python)**
+**Python 版：[../python/](../python/README.md)**（全体の概要はリポジトリ直下の [README](../README.md)）
 
 このバッチを Python 3.12（標準ライブラリ ＋ SQLite）に移行したものです。
 
@@ -126,5 +126,5 @@ JUnit 5 で **44件**のテストがあり、すべて成功しています。
   - `#` で始まる行が、エラーにならずに読み飛ばされる
   - 集計の合計が long の上限を超えると、ジョブが異常終了する
 
-  こうした動きの記録と、移行で判断した点は、Python 版の `docs/migration-notes.md` にまとめています。
-- **リポジトリを分けた**：Python 版は、最初はこのリポジトリの `python/` フォルダで作りました。その後、別のリポジトリに分離しています。分離までの経緯は、このリポジトリのコミット履歴に残っています。
+  こうした動きの記録と、移行で判断した点は、[python/docs/migration-notes.md](../python/docs/migration-notes.md) にまとめています。
+- **リポジトリの構成**：Python 版は、最初は Java 版のリポジトリの中で作りました。その後、別のリポジトリに分け、最後に公開用として1つのリポジトリ（`java/` と `python/`）にまとめています。この経緯は、コミット履歴に残っています。

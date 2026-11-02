@@ -1,0 +1,14 @@
+# 各フォルダの生成物は java/.gitignore と python/.gitignore で除外している。
+# ここでは、リポジトリ全体に共通するものだけを除外する。
+
+# 秘密情報を含む可能性がある設定（ローカル専用）
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

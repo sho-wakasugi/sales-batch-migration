@@ -1,20 +1,21 @@
 # 売上CSV集計バッチ（Python版）― Java からの移行と現新一致の検証
 
-Java（Spring Batch）で作った売上CSV集計バッチを、Python に移行したリポジトリです。
+Java（Spring Batch）で作った売上CSV集計バッチを、Python に移行したものです。
 移行元の Java版と**同じ入力に対して同じ結果になること（現新一致）**を、比較スクリプトで検証しています。
 
-- 移行元（Java版）：[sho-wakasugi/sales-batch](https://github.com/sho-wakasugi/sales-batch)
+- 全体の概要：リポジトリ直下の [README](../README.md)
+- 移行元（Java版）：[../java/](../java/README.md)
 - 移行の詳しい記録：[docs/migration-notes.md](docs/migration-notes.md)
 
 ## 移行の概要
 
-| 項目 | Java版（移行元） | Python版（このリポジトリ） |
+| 項目 | Java版（移行元） | Python版（このフォルダ） |
 |---|---|---|
 | 言語 | Java 21 | Python 3.12 |
 | バッチの枠組み | Spring Boot 3.5 / Spring Batch 5 | なし（同じ3ステップを関数で順に呼ぶ） |
 | DB / DB アクセス | H2 / MyBatis | SQLite / sqlite3（標準ライブラリ） |
 | CSV の読み書き | FlatFileItemReader / FlatFileItemWriter | 自前実装（Spring Batch の処理を移植） |
-| テスト | JUnit 5（44件） | pytest（113件） |
+| テスト | JUnit 5（44件） | pytest（118件） |
 | 外部ライブラリ | Spring など | **テスト用の pytest だけ**（本体は標準ライブラリだけで動く） |
 
 処理の内容は Java版と同じです。
@@ -84,7 +85,7 @@ Java版で見つかった問題（`#` の行が消える、集計のあふれで
 4. **本人が結果を確認し、方針を修正する**：本人の判断で修正した例は次のとおりです。
    - Java版：毎回テーブルを全件削除する案に対して、「それではバッチの意味がない。比較検証のときだけ削除する」と修正した
    - Python版：最初は Java のリポジトリの中に作ったものを、別のリポジトリに分けた
-   - 公開前：コミット履歴の作成者情報を整理した
+   - 公開前：コミット履歴の作成者情報を整理し、両方の履歴を残したまま1つのリポジトリにまとめた
 
 ### AI の出力をそのまま信用しないための工夫
 
@@ -99,11 +100,11 @@ Java版で見つかった問題（`#` の行が消える、集計のあふれで
 ### 前提
 
 - Python 3.12
-- 現新比較を行う場合は、Java版のリポジトリ（[sales-batch](https://github.com/sho-wakasugi/sales-batch)）と JDK 21 も必要です
+- 現新比較を行う場合は、JDK 21 も必要です（Java版はリポジトリ内の [java/](../java/README.md)）
 
 ### 準備（初回のみ、PowerShell）
 
-リポジトリのフォルダで実行します。
+`python` フォルダで実行します（以降のコマンドも同じです）。
 
 ```powershell
 python -m venv .venv
@@ -143,7 +144,7 @@ Get-Content -Encoding UTF8 output\error.csv
 .venv\Scripts\python.exe -m pytest
 ```
 
-テストは Java版が無くても実行できます。合計は **113件**で、すべて成功しています。
+テストは `python` フォルダだけでも実行できます。合計は **118件**で、すべて成功しています（`java` フォルダが無い場合、`test_java_copies.py` の5件はスキップされます）。
 
 | テストファイル | 件数 | 内容 |
 |---|---|---|
@@ -152,25 +153,26 @@ Get-Content -Encoding UTF8 output\error.csv
 | `test_csv_reader.py` | 20 | CSV の分割、コメント行、改行、不正なバイト（期待値は Spring Batch で確認した結果） |
 | `test_validation_processor.py` | 10 | 正常行とエラー行の振り分け（Java の7件と、追加の観点） |
 | `test_job_integration.py` | 7 | ジョブ全体の実行。Java の期待値ファイルや Java の実際の出力とのバイト一致、異常終了 |
+| `test_java_copies.py` | 5 | Java版のファイルのコピーが、元のファイルと同じ内容であること |
 | `test_prepare.py` | 1 | 入力ファイルが無いときの異常終了 |
 
 ### 現新比較（Java版と突き合わせる）
 
-先に Java版をビルドしておきます（`sales-batch` で `.\mvnw.cmd package`）。
+先に Java版をビルドしておきます（`java` フォルダで `.\mvnw.cmd package`）。
 
 ```powershell
-.\tools\compare.ps1                                  # 既定の5ファイルで比較
-.\tools\compare.ps1 -InputFiles input\sales.csv      # 入力を指定して比較
-.\tools\compare.ps1 -JavaProject C:\work\sales-batch # Java版の場所を指定（省略時は同じ階層の sales-batch）
+.\tools\compare.ps1                              # 既定の5ファイルで比較
+.\tools\compare.ps1 -InputFiles input\sales.csv  # 入力を指定して比較
+.\tools\compare.ps1 -JavaProject C:\work\java    # Java版の場所を指定（省略時はリポジトリ内の java フォルダ）
 ```
 
 比較の結果は `output\compare\<入力名>\{java,python}` に残ります。
 
 ### Java版から持ってきたファイル
 
-次のファイルは Java版のコピーです。Java版の側を変えた場合は、こちらも更新してください。
+次のファイルは Java版のコピーです。`python` フォルダだけでテストを動かせるように持っています。Java版の側を変えた場合は、こちらも更新してください（更新し忘れると `test_java_copies.py` が失敗します）。
 
-| このリポジトリ | Java版 |
+| python フォルダ | java フォルダ |
 |---|---|
 | `input/sales.csv` | `input/sales.csv` |
 | `tests/data/java_integration/*` | `src/test/resources/integration/*` |
@@ -179,7 +181,7 @@ Get-Content -Encoding UTF8 output\error.csv
 ## ディレクトリ構成（Java との対応）
 
 ```
-sales-batch-python/
+python/
 ├─ input/sales.csv                 入力データ（Java版のコピー）
 ├─ salesbatch/
 │   ├─ __main__.py                 起動・引数・終了コード   ← SalesBatchApplication

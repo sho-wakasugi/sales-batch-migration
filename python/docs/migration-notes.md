@@ -1,6 +1,6 @@
 # Java → Python 移行メモ（売上CSV集計バッチ）
 
-Java版（Spring Boot / Spring Batch / MyBatis / H2。プロジェクト `sales-batch`）を、Python版（標準ライブラリ / SQLite。このプロジェクト `sales-batch-python`）に移行したときの記録です。
+Java版（Spring Boot / Spring Batch / MyBatis / H2。`java/` フォルダ）を、Python版（標準ライブラリ / SQLite。`python/` フォルダ）に移行したときの記録です。この文書の中のパスは、特に断りが無い限り `python/` フォルダからの相対パスです。
 
 ## 1. 結論
 
@@ -224,16 +224,21 @@ csv モジュールで読むと、次のケースで Java と結果が変わり�
 - パスの変更は `--input-file=...` です。Java の `--sales.input-file=...` に当たります。
 - `clear` は Java と同じく、次の実行に引き継ぎません。
 
-### 4-11. Java版とは別のプロジェクトにし、必要なファイルはコピーする
+### 4-11. リポジトリの構成と、Java版のファイルのコピー
 
-- Python版は、Java版（`sales-batch`）とは別のプロジェクト・別の Git リポジトリにしました。
-  - 最初は Java版のリポジトリの `python/` フォルダに作りましたが、あとで分離しました。
-  - コミット履歴は `git subtree split` で引き継いでいます。
-- Python版だけでテストを実行できるよう、Java版の次のファイルをコピーして持っています。
+リポジトリの構成は、次のように変わりました。
+
+1. 最初は、Java版のリポジトリの `python/` フォルダに作りました。
+2. 次に、別のリポジトリ（sales-batch-python）に分けました。コミット履歴は `git subtree split` で引き継ぎました。
+3. 最後に、公開のために1つのリポジトリ（`java/` と `python/`）にまとめました。両方のコミット履歴を、それぞれのフォルダの下に移して残しています。
+
+コピーについての方針は次のとおりです。
+
+- `python/` フォルダだけでテストを実行できるよう、Java版の次のファイルをコピーして持っています。
   - `input/sales.csv`
   - Java のテスト用の期待値（`tests/data/java_integration/`）
-- **Java版の側を変えたときは、コピーも更新が必要です。**
-- 現新比較（`tools/compare.ps1`）では、両方に同じ入力ファイルを渡します。そのためコピーがずれていても、比較の結果は正しく出ます。Java版の場所は `-JavaProject` で指定します（省略時は同じ階層の `sales-batch`）。
+- コピーが Java版の元のファイルと同じ内容であることは、テスト（`tests/test_java_copies.py`）で確かめています。`java/` フォルダが無い場合、このテストはスキップされます。
+- 現新比較（`tools/compare.ps1`）では、両方に同じ入力ファイルを渡します。そのため、コピーがずれていても比較の結果は正しく出ます。Java版の場所の既定値はリポジトリ内の `java/` で、`-JavaProject` で変えられます。
 
 ## 5. Java版で見つかった問題（Java は修正していない）
 

@@ -1,0 +1,2 @@
+# 改行は LF に統一する（各フォルダの .gitattributes の設定が優先される）
+* text=auto eol=lf

@@ -1,6 +1,6 @@
 """ジョブ全体を実行し、出力ファイルと件数を検証する（Java: SalesJobIntegrationTest と同じ観点）。
 
-期待値ファイルは、Java版のテスト用ファイル（sales-batch の src/test/resources/integration）の
+期待値ファイルは、Java版のテスト用ファイル（java/src/test/resources/integration）の
 コピー（tests/data/java_integration）と、境界ケースを Java で実際に実行した出力（tests/data/expected）を使う。
 """
 

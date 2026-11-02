@@ -10,10 +10,10 @@
     - 終了コード
   結果は output\compare\<入力ファイル名>\{java,python} に残る。
 
-  事前に Java版をビルド（sales-batch で .\mvnw.cmd package）し、このプロジェクトの .venv を作っておくこと。
+  事前に Java版をビルド（java フォルダで .\mvnw.cmd package）し、python フォルダの .venv を作っておくこと。
 
 .PARAMETER JavaProject
-  Java版プロジェクト（sales-batch）のフォルダ。省略時はこのプロジェクトと同じ階層の sales-batch。
+  Java版のフォルダ。省略時はリポジトリ内の java フォルダ（python フォルダと同じ階層）。
 
 .PARAMETER InputFiles
   比較に使う入力ファイル（このプロジェクトのフォルダからの相対パス、または絶対パス）。
@@ -21,7 +21,7 @@
 .EXAMPLE
   .\tools\compare.ps1
   .\tools\compare.ps1 -InputFiles input\sales.csv
-  .\tools\compare.ps1 -JavaProject C:\work\sales-batch
+  .\tools\compare.ps1 -JavaProject C:\work\java
 #>
 param(
     [string]$JavaProject,
@@ -35,8 +35,8 @@ param(
 )
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-if (-not $JavaProject) { $JavaProject = Join-Path (Split-Path $root -Parent) "sales-batch" }
-if (-not (Test-Path $JavaProject)) { Write-Host "Java版のプロジェクトが見つかりません。-JavaProject で指定してください: $JavaProject"; exit 2 }
+if (-not $JavaProject) { $JavaProject = Join-Path (Split-Path $root -Parent) "java" }
+if (-not (Test-Path $JavaProject)) { Write-Host "Java版のフォルダが見つかりません。-JavaProject で指定してください: $JavaProject"; exit 2 }
 $JavaProject = (Resolve-Path $JavaProject).Path
 $jar = Join-Path $JavaProject "target\sales-batch.jar"
 $python = Join-Path $root ".venv\Scripts\python.exe"
